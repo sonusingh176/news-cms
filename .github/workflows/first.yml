@@ -51,22 +51,39 @@ jobs:
             - name: Run ESLint
               run: npm run lint
 
+    # Builds the production version after validation and linting succeed.
     build:
         runs-on: ubuntu-latest
         needs: [validate-files,lint]
 
         steps:
+            # Downloads the repository code.
             - name: Get repository code
               uses: actions/checkout@v4
 
+            # Sets up Node.js for the production build.
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
                 node-version: 22
                 # cache: npm
 
+            # Installs dependencies required for building the project.
             - name: Install dependencies
               run: npm ci
 
+            # Creates the production-ready files in the dist/ directory.
             - name: Build project
               run: npm run build
+            
+            # Uploads the generated dist/ files so they can be downloaded.
+            - name: Upload product build
+              uses: actions/upload-artifact@v4
+              with:
+                path: dist/
+                # Fails if no build files are found.
+                if-no-files-found: error
+                # Duration after which the artifact expires, in days.
+                # Minimum: 1 day. Maximum: 90 days (subject to repository settings).
+                # The value 0 uses the default retention period.
+                retention-days: 7
